@@ -48,7 +48,8 @@
       dasMensal: num('pjDas'),
       aliquota: num('pjAliquota') / 100,
       contadorMensal: num('pjContador'),
-      inssMensal: num('pjInss')
+      inssMensal: num('pjInss'),
+      feriasPJ: document.getElementById('pjFerias').value === 'sim'
     };
     return { clt: clt, pj: pj };
   }
@@ -72,22 +73,34 @@
 
     var html = '';
 
-    // --- Comparação A: mesmo líquido -----------------------------------------
+    // --- Comparação A: mesmo líquido (paridade 12 meses) ---------------------
+    var corpoA = pj.comFerias
+      ? '<p>Cobrando <strong>' + fmt(pj.mensalidadeA) + '/mês</strong> (mensalidade que ' +
+        'igualaria o CLT em 12 meses) e tirando férias (11 faturamentos), o PJ recebe ' +
+        '<strong>' + fmt(pj.liquidoPJ_A) + '</strong> líquido/ano — <strong>' +
+        fmt(pj.perdaFeriasA) + ' a menos</strong> que o CLT (férias não remuneradas) — ' +
+        'e a empresa paga <strong>' + fmt(pj.custoEmpresaA) + '</strong>, contra <strong>' +
+        fmt(clt.custoEmpresa) + '</strong> no CLT.</p>'
+      : '<p>Para o PJ receber <strong>' + fmt(clt.liquido) + '</strong> líquido/ano, ' +
+        'a empresa paga <strong>' + fmt(pj.custoEmpresaA) + '</strong>, contra <strong>' +
+        fmt(clt.custoEmpresa) + '</strong> no CLT.</p>';
     html += '<div class="verdict">' +
-      '<h4>Comparação A — mesmo líquido para o trabalhador</h4>' +
-      '<p>Para o PJ receber <strong>' + fmt(clt.liquido) + '</strong> líquido/ano, ' +
-      'a empresa paga <strong>' + fmt(pj.custoEmpresaA) + '</strong>, contra ' +
-      '<strong>' + fmt(clt.custoEmpresa) + '</strong> no CLT.</p>' +
+      '<h4>Comparação A — mesmo líquido para o trabalhador</h4>' + corpoA +
       '<p>Economia da empresa indo de PJ: ' +
       signed(pj.economiaEmpresaA) + ' (' + pj.economiaEmpresaPctA.toFixed(1) + '%).</p>' +
       '</div>';
 
     // --- Comparação B: mesmo custo -------------------------------------------
+    var corpoB = pj.comFerias
+      ? '<p>Com orçamento de <strong>' + fmt(pj.mensalidadeB) + '/mês</strong> (custo do ' +
+        'CLT ÷ 12) e 11 faturamentos, a empresa gasta <strong>' + fmt(pj.custoEmpresaB) +
+        '</strong> e o PJ recebe <strong>' + fmt(pj.liquidoB) + '</strong> líquido/ano, ' +
+        'contra <strong>' + fmt(clt.liquido) + '</strong> no CLT.</p>'
+      : '<p>Se a empresa gastasse os mesmos <strong>' + fmt(clt.custoEmpresa) + '</strong> ' +
+        'com um PJ, ele receberia <strong>' + fmt(pj.liquidoB) + '</strong> líquido/ano, ' +
+        'contra <strong>' + fmt(clt.liquido) + '</strong> no CLT.</p>';
     html += '<div class="verdict">' +
-      '<h4>Comparação B — mesmo custo para a empresa</h4>' +
-      '<p>Se a empresa gastasse os mesmos <strong>' + fmt(clt.custoEmpresa) + '</strong> ' +
-      'com um PJ, ele receberia <strong>' + fmt(pj.liquidoB) + '</strong> líquido/ano, ' +
-      'contra <strong>' + fmt(clt.liquido) + '</strong> no CLT.</p>' +
+      '<h4>Comparação B — mesmo custo para a empresa</h4>' + corpoB +
       '<p>Ganho do trabalhador indo de PJ: ' +
       signed(pj.ganhoLiquidoB) + ' (' + pj.ganhoLiquidoPctB.toFixed(1) + '%).</p>' +
       '</div>';
@@ -124,17 +137,21 @@
       row('Custo total da empresa', clt.custoEmpresa, 'total') +
       '</table></div>';
 
-    // PJ
+    // PJ (Comparação A)
+    var pjTag = pj.comFerias
+      ? '11 faturamentos · mensalidade de paridade (Comparação A)'
+      : 'mesmo líquido do CLT (Comparação A)';
     html += '<div class="panel pj"><h3>PJ — ' + modeloLabel + '</h3>' +
-      '<span class="tag">mesmo líquido do CLT (Comparação A)</span>' +
+      '<span class="tag">' + pjTag + '</span>' +
       '<div class="headline"><span class="label">Líquido/ano</span>' +
-      '<span class="value pj">' + fmt(clt.liquido) + '</span></div>' +
+      '<span class="value pj">' + fmt(pj.liquidoPJ_A) + '</span></div>' +
       '<div class="headline"><span class="label">Custo da empresa/ano</span>' +
       '<span class="value">' + fmt(pj.custoEmpresaA) + '</span></div>' +
       '<table class="breakdown">' +
-      row('Nota emitida (faturamento)', pj.notaA) +
-      row('(−) Impostos + custos fixos', -(pj.notaA - clt.liquido), 'sub') +
-      row('Líquido do prestador', clt.liquido, 'total') +
+      row('Mensalidade de paridade (R$/mês)', pj.mensalidadeA, 'sub') +
+      row('Nota anual (× ' + pj.meses + ' faturamentos)', pj.notaA) +
+      row('(−) Impostos + custos fixos', -(pj.notaA - pj.liquidoPJ_A), 'sub') +
+      row('Líquido do prestador', pj.liquidoPJ_A, 'total') +
       '</table>' +
       '<table class="breakdown">' +
       row('Custos fixos anuais (DAS/contador/INSS)', pj.custosFixosAnuais, 'sub') +

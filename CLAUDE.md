@@ -96,6 +96,10 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
   = 20% + RAT + 5,8% Sistema S) + benefícios.
 - PJ: empresa paga só a nota. MEI (DAS fixo, alerta de limite R$81k/ano) ou Simples
   (alíquota efetiva), com contador e INSS pró-labore opcionais.
+- Férias no PJ (opcional): a mensalidade é a de paridade com o CLT em 12 meses; com
+  férias o PJ fatura 11 meses → líquido e custo da empresa caem ~1/12 ("perde 1 mês").
+  Custos fixos seguem 12 meses. INSS pró-labore tem orientação no form (ex.: igualar à
+  contribuição que pagaria como CLT).
 
 ## Como rodar
 

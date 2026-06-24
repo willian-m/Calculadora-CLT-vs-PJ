@@ -216,38 +216,61 @@
   /*
    * Calcula os dois sentidos da comparação PJ contra um resultado CLT.
    *   clt: saída de calcCLT (usa .liquido e .custoEmpresa)
-   *   pj : parâmetros acima
+   *   pj : parâmetros acima, mais:
+   *     feriasPJ  boolean — se true, o PJ fatura 11 meses em vez de 12.
+   *
+   * Modelo de férias ("perde 1 mês"): a mensalidade é a de paridade com o CLT
+   * em 12 meses; com férias o PJ recebe apenas 11 faturamentos, então o líquido
+   * dele e o custo da empresa caem ~1/12. Os custos fixos (DAS/contador/INSS)
+   * continuam sendo pagos nos 12 meses.
    */
   function calcPJ(pj, clt) {
     var LIMITE_MEI = 81000;
+    var meses = pj.feriasPJ ? 11 : 12;
+    var r = pj.modelo === 'simples' ? (pj.aliquota || 0) : 0;
+    var fixos = pjCustosFixos(pj); // anual (sempre 12 meses)
 
-    // Direção A: PJ com o mesmo LÍQUIDO do CLT -> quanto custa à empresa
-    var notaA = pjNotaParaLiquido(pj, clt.liquido);
-    var custoEmpresaA = notaA; // empresa paga apenas a nota
+    // Líquido anual a partir de uma receita anual (impostos % + custos fixos)
+    function netFromRev(rev) { return round2(rev * (1 - r) - fixos); }
+
+    // --- Direção A: mensalidade que iguala o líquido do CLT em 12 meses -----
+    var notaParidadeA = (clt.liquido + fixos) / (1 - r); // receita anual p/ 12 meses
+    var mensalidadeA = round2(notaParidadeA / 12);
+    var notaA = round2(meses * (notaParidadeA / 12));    // receita anual efetiva
+    var custoEmpresaA = notaA;                            // empresa paga só a nota
+    var liquidoPJ_A = netFromRev(notaA);                 // = clt.liquido se 12 meses
+    var perdaFeriasA = round2(clt.liquido - liquidoPJ_A); // 0 se 12; ~1 mês se 11
     var economiaEmpresaA = round2(clt.custoEmpresa - custoEmpresaA);
     var economiaEmpresaPctA = clt.custoEmpresa
       ? round2((economiaEmpresaA / clt.custoEmpresa) * 100)
       : 0;
 
-    // Direção B: PJ com o mesmo CUSTO do CLT -> quanto o PJ recebe líquido
-    var notaB = clt.custoEmpresa;
-    var liquidoB = pjLiquidoDaNota(pj, notaB);
+    // --- Direção B: orçamento mensal = custo CLT / 12, pago `meses` vezes ----
+    var mensalidadeB = round2(clt.custoEmpresa / 12);
+    var notaB = round2(meses * (clt.custoEmpresa / 12));
+    var custoEmpresaB = notaB;                            // < custo CLT se houver férias
+    var liquidoB = netFromRev(notaB);
     var ganhoLiquidoB = round2(liquidoB - clt.liquido);
     var ganhoLiquidoPctB = clt.liquido
       ? round2((ganhoLiquidoB / clt.liquido) * 100)
       : 0;
 
-    var custosFixos = pjCustosFixos(pj);
-
     return {
-      custosFixosAnuais: custosFixos,
+      meses: meses,
+      comFerias: pj.feriasPJ === true,
+      custosFixosAnuais: fixos,
       // Direção A
+      mensalidadeA: mensalidadeA,
       notaA: notaA,
       custoEmpresaA: custoEmpresaA,
+      liquidoPJ_A: liquidoPJ_A,
+      perdaFeriasA: perdaFeriasA,
       economiaEmpresaA: economiaEmpresaA,
       economiaEmpresaPctA: economiaEmpresaPctA,
       // Direção B
-      notaB: round2(notaB),
+      mensalidadeB: mensalidadeB,
+      notaB: notaB,
+      custoEmpresaB: custoEmpresaB,
       liquidoB: liquidoB,
       ganhoLiquidoB: ganhoLiquidoB,
       ganhoLiquidoPctB: ganhoLiquidoPctB,

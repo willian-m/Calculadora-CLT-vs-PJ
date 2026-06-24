@@ -98,10 +98,27 @@
           <input type="number" id="pjDas" min="0" step="1" value="76">
           <small>Faturamento limitado a R$81.000/ano.</small>
         </label>
-        <div class="field-row">
-          <label class="field"><span>Contador (R$/mês)</span><input type="number" id="pjContador" min="0" step="10" value="200"></label>
-          <label class="field"><span>INSS pró-labore (R$/mês)</span><input type="number" id="pjInss" min="0" step="10" value="0"></label>
-        </div>
+        <label class="field">
+          <span>Tira férias? (11 faturamentos no ano)</span>
+          <select id="pjFerias">
+            <option value="nao" selected>Não — fatura os 12 meses</option>
+            <option value="sim">Sim — perde 1 mês de faturamento</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Contador (R$/mês)</span>
+          <input type="number" id="pjContador" min="0" step="10" value="200">
+        </label>
+        <label class="field">
+          <span>INSS pró-labore (R$/mês)</span>
+          <input type="number" id="pjInss" min="0" step="10" value="0">
+          <small>
+            Opcional — contribuição previdenciária mensal do PJ. Deixe 0 para ignorar.
+            Para uma comparação justa com a aposentadoria do CLT, informe quanto o PJ
+            recolheria por mês; por exemplo, iguale ao INSS mensal que pagaria como CLT
+            (no teto, R$988,09/mês).
+          </small>
+        </label>
       </section>
 
       <div class="actions">
@@ -119,6 +136,7 @@
         <li>INSS do terço de férias somado ao salário do mês de férias; teto mensal de R$8.475,55 (contribuição máxima de R$988,09/mês).</li>
         <li>FGTS = 8% sobre salário + 13º + terço. Saque-aniversário calculado sobre o depósito do ano.</li>
         <li>Custo da empresa no PJ = valor da nota; benefícios não incluídos no PJ.</li>
+        <li>Férias no PJ (opcional): mantém a mensalidade de paridade com o CLT, mas o PJ recebe 11 faturamentos (perde ~1 mês — férias não remuneradas). Custos fixos (DAS/contador/INSS) seguem nos 12 meses.</li>
         <li>Ferramenta educativa — não substitui cálculo contábil oficial.</li>
       </ul>
     </footer>

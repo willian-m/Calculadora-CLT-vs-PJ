@@ -109,6 +109,38 @@
     C.pjLiquidoDaNota({ modelo: 'simples', aliquota: 0.06, contadorMensal: 200 }, pjSimples.notaA),
     cltLucro.liquido, 0.02);
 
+  // ---- PJ com férias (11 pagamentos, "perde 1 mês") ------------------------
+  var pjSemFerias = C.calcPJ(
+    { modelo: 'simples', aliquota: 0.06, contadorMensal: 200, feriasPJ: false },
+    cltLucro
+  );
+  var pjComFerias = C.calcPJ(
+    { modelo: 'simples', aliquota: 0.06, contadorMensal: 200, feriasPJ: true },
+    cltLucro
+  );
+  check('Férias: meses = 11', pjComFerias.meses, 11);
+  check('Sem férias: líquido A == líquido CLT', pjSemFerias.liquidoPJ_A, cltLucro.liquido, 0.02);
+  check('Sem férias: perda = 0', pjSemFerias.perdaFeriasA, 0, 0.02);
+  check('Férias: líquido A < líquido CLT',
+    pjComFerias.liquidoPJ_A < cltLucro.liquido ? 1 : 0, 1);
+  // custo A com férias = 11/12 do custo sem férias
+  check('Férias: custoEmpresaA = 11/12',
+    pjComFerias.custoEmpresaA, pjSemFerias.custoEmpresaA * 11 / 12, 0.02);
+  // perda ~ 1 mensalidade após imposto
+  check('Férias: perda ~ 1 mês após imposto',
+    pjComFerias.perdaFeriasA, pjComFerias.mensalidadeA * (1 - 0.06), 0.05);
+  // direção B: empresa paga 11/12 do custo CLT
+  check('Férias: custoEmpresaB = 11/12 do custo CLT',
+    pjComFerias.custoEmpresaB, cltLucro.custoEmpresa * 11 / 12, 0.02);
+
+  // MEI com férias: perda = 1 mensalidade (sem imposto %)
+  var pjMEIFerias = C.calcPJ(
+    { modelo: 'mei', dasMensal: 76, contadorMensal: 0, feriasPJ: true },
+    cltLucro
+  );
+  check('Férias MEI: perda = 1 mensalidade',
+    pjMEIFerias.perdaFeriasA, pjMEIFerias.mensalidadeA, 0.05);
+
   // ---- Relatório -----------------------------------------------------------
   var passed = results.filter(function (r) { return r.ok; }).length;
   var failed = results.length - passed;
