@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testes — Calculadora CLT vs PJ</title>
+  <style>
+    body { font-family: ui-monospace, "SF Mono", Menlo, monospace; background: #0f1115;
+           color: #e6e8ec; padding: 2rem; line-height: 1.6; }
+    h1 { font-size: 1.2rem; }
+    .summary { font-size: 1.1rem; font-weight: 700; padding: 0.6rem 1rem; border-radius: 8px;
+               margin-bottom: 1rem; display: inline-block; }
+    .ok { background: rgba(45, 212, 167, 0.15); color: #2dd4a7; }
+    .bad { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+    .line { padding: 0.1rem 0; }
+    .line.fail { color: #ff6b6b; }
+    .line.pass { color: #6f7787; }
+  </style>
+</head>
+<body>
+  <h1>Testes do núcleo de cálculo (calc.js)</h1>
+  <div id="summary"></div>
+  <div id="lines"></div>
+
+  <script src="calc.js"></script>
+  <script src="tests.js"></script>
+  <script>
+    var t = window.__TESTS__;
+    var summary = document.getElementById('summary');
+    summary.innerHTML = '<span class="summary ' + (t.failed === 0 ? 'ok' : 'bad') + '">' +
+      t.passed + ' passaram · ' + t.failed + ' falharam</span>';
+    var lines = document.getElementById('lines');
+    t.report(function (line, ok) {
+      var div = document.createElement('div');
+      div.className = 'line ' + (ok ? 'pass' : 'fail');
+      div.textContent = line;
+      lines.appendChild(div);
+    });
+  </script>
+</body>
+</html>
