@@ -55,14 +55,51 @@
   }
 
   // ---- Render helpers --------------------------------------------------------
-  function row(label, value, cls) {
-    return '<tr class="' + (cls || '') + '"><td>' + label +
-      '</td><td>' + fmt(value) + '</td></tr>';
+  // Linha com valor mensal (média = anual ÷ 12) e anual.
+  function row(label, annual, cls) {
+    return '<tr class="' + (cls || '') + '"><td>' + label + '</td><td>' +
+      fmt((annual || 0) / 12) + '</td><td>' + fmt(annual) + '</td></tr>';
+  }
+  function tableHead() {
+    return '<tr class="head"><td></td><td>/mês</td><td>/ano</td></tr>';
+  }
+  // Destaque com valor anual grande e mensal (média) abaixo.
+  function headline(label, annual, cls) {
+    return '<div class="headline"><span class="label">' + label + '</span>' +
+      '<span class="value ' + (cls || '') + '">' + fmt(annual) +
+      '<small>' + fmt((annual || 0) / 12) + '/mês</small></span></div>';
   }
   function signed(value) {
     var cls = value >= 0 ? 'pos' : 'neg';
     var sign = value >= 0 ? '+' : '−';
     return '<span class="' + cls + '">' + sign + ' ' + fmt(Math.abs(value)) + '</span>';
+  }
+
+  function cenarioLabel(t) {
+    if (t <= 0.02) return 'Cenário A — mesmo líquido do trabalhador';
+    if (t >= 0.98) return 'Cenário B — mesmo custo para a empresa';
+    return 'Intermediário — ' + Math.round(t * 100) + '% rumo ao custo do CLT';
+  }
+
+  // Painel PJ para um faturamento qualquer (recalculado pelo slider).
+  function pjPanelHTML(o, clt, modeloLabel, cenLabel) {
+    var deltaLiquido = o.liquido - clt.liquido;
+    var deltaCusto = o.custoEmpresa - clt.custoEmpresa;
+    return '<div class="panel pj"><h3>PJ — ' + modeloLabel + '</h3>' +
+      '<span class="tag">' + cenLabel + '</span>' +
+      headline('Líquido', o.liquido, 'pj') +
+      headline('Custo da empresa', o.custoEmpresa, '') +
+      '<table class="breakdown">' + tableHead() +
+      row('Faturamento (nota)', o.nota) +
+      row('(−) Impostos + custos fixos', -o.impostosCustos, 'sub') +
+      row('Líquido do prestador', o.liquido, 'total') +
+      '</table>' +
+      '<p class="hint">Mensalidade faturada: <strong>' + fmt(o.mensalidade) +
+      '</strong> em ' + o.meses + ' faturamentos no ano.</p>' +
+      '<table class="breakdown">' + tableHead() +
+      row('Diferença de líquido vs CLT', deltaLiquido, 'sub') +
+      row('Diferença de custo vs CLT', deltaCusto, 'sub') +
+      '</table></div>';
   }
 
   // ---- Render ----------------------------------------------------------------
@@ -111,24 +148,35 @@
         '(Simples Nacional).</div>';
     }
 
+    // --- Slider: faturamento do PJ entre o cenário A e o B -------------------
+    var notaMin = Math.floor(pj.notaA);
+    var notaMax = Math.ceil(pj.notaB);
+    html += '<div class="slider-box">' +
+      '<div class="slider-labels">' +
+      '<span>Cenário A<br><small>mesmo líquido</small></span>' +
+      '<span class="slider-readout" id="sliderReadout"></span>' +
+      '<span class="right">Cenário B<br><small>mesmo custo</small></span></div>' +
+      '<input type="range" id="pjSlider" min="' + notaMin + '" max="' + notaMax +
+      '" value="' + notaMin + '" step="1">' +
+      '<p class="hint">Arraste para variar o faturamento do PJ entre os dois cenários.</p>' +
+      '</div>';
+
     // --- Painéis lado a lado --------------------------------------------------
     html += '<div class="cmp-grid">';
 
-    // CLT
+    // CLT (estático)
     html += '<div class="panel clt"><h3>CLT</h3>' +
       '<span class="tag">funcionário registrado</span>' +
-      '<div class="headline"><span class="label">Líquido/ano</span>' +
-      '<span class="value clt">' + fmt(clt.liquido) + '</span></div>' +
-      '<div class="headline"><span class="label">Custo da empresa/ano</span>' +
-      '<span class="value">' + fmt(clt.custoEmpresa) + '</span></div>' +
-      '<table class="breakdown">' +
+      headline('Líquido', clt.liquido, 'clt') +
+      headline('Custo da empresa', clt.custoEmpresa, '') +
+      '<table class="breakdown">' + tableHead() +
       row('Salário bruto anual (12 +13º +⅓)', clt.salarioBrutoAnual) +
       row('(−) INSS', -clt.inssAnual, 'sub') +
       row('(−) IRPF', -clt.irAnual, 'sub') +
       row('(+) FGTS aproveitável (VP)', clt.fgtsValor, 'sub') +
       row('Líquido do funcionário', clt.liquido, 'total') +
       '</table>' +
-      '<table class="breakdown">' +
+      '<table class="breakdown">' + tableHead() +
       row('Remuneração anual', clt.salarioBrutoAnual) +
       row('(+) FGTS 8%', clt.fgtsDeposito, 'sub') +
       row('(+) Provisão multa 40%', clt.multaProvisao, 'sub') +
@@ -137,32 +185,32 @@
       row('Custo total da empresa', clt.custoEmpresa, 'total') +
       '</table></div>';
 
-    // PJ (Comparação A)
-    var pjTag = pj.comFerias
-      ? '11 faturamentos · mensalidade de paridade (Comparação A)'
-      : 'mesmo líquido do CLT (Comparação A)';
-    html += '<div class="panel pj"><h3>PJ — ' + modeloLabel + '</h3>' +
-      '<span class="tag">' + pjTag + '</span>' +
-      '<div class="headline"><span class="label">Líquido/ano</span>' +
-      '<span class="value pj">' + fmt(pj.liquidoPJ_A) + '</span></div>' +
-      '<div class="headline"><span class="label">Custo da empresa/ano</span>' +
-      '<span class="value">' + fmt(pj.custoEmpresaA) + '</span></div>' +
-      '<table class="breakdown">' +
-      row('Mensalidade de paridade (R$/mês)', pj.mensalidadeA, 'sub') +
-      row('Nota anual (× ' + pj.meses + ' faturamentos)', pj.notaA) +
-      row('(−) Impostos + custos fixos', -(pj.notaA - pj.liquidoPJ_A), 'sub') +
-      row('Líquido do prestador', pj.liquidoPJ_A, 'total') +
-      '</table>' +
-      '<table class="breakdown">' +
-      row('Custos fixos anuais (DAS/contador/INSS)', pj.custosFixosAnuais, 'sub') +
-      row('Custo total da empresa', pj.custoEmpresaA, 'total') +
-      '</table></div>';
+    // PJ (preenchido pelo slider)
+    html += '<div id="pjPanel"></div>';
 
     html += '</div>'; // cmp-grid
 
     var el = document.getElementById('resultados');
     el.innerHTML = html;
     el.hidden = false;
+
+    // --- Liga o slider ao painel PJ -----------------------------------------
+    var pjParams = input.pj;
+    var slider = document.getElementById('pjSlider');
+    var readout = document.getElementById('sliderReadout');
+    var panel = document.getElementById('pjPanel');
+    function updatePJ() {
+      var nota = parseFloat(slider.value);
+      var range = notaMax - notaMin;
+      var t = range > 0 ? (nota - notaMin) / range : 0;
+      var o = C.pjPorNota(pjParams, nota);
+      panel.innerHTML = pjPanelHTML(o, clt, modeloLabel, cenarioLabel(t));
+      readout.innerHTML = '<strong>' + fmt(o.mensalidade) + '/mês</strong> · ' +
+        fmt(o.nota) + '/ano<br><span class="muted">' + cenarioLabel(t) + '</span>';
+    }
+    slider.addEventListener('input', updatePJ);
+    updatePJ();
+
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 

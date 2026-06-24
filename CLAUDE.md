@@ -72,7 +72,7 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
 | `index.html` | Formulário (salário, FGTS, regime do empregador, benefícios, cenário PJ) + área de resultados |
 | `styles.css` | Tema escuro responsivo; painéis CLT/PJ lado a lado |
 | `calc.js` | Núcleo financeiro — **funções puras** sem DOM, exportadas em `window`/`module.exports` |
-| `app.js` | Lê o form, chama `calc.js`, renderiza e formata em BRL (`Intl.NumberFormat`) |
+| `app.js` | Lê o form, chama `calc.js`, renderiza (valores mensais e anuais) e formata em BRL (`Intl.NumberFormat`); slider liga o painel PJ a `pjPorNota` |
 | `tests.js` / `tests.html` | 38 asserções da matemática; rodam no Node e no browser |
 | `Makefile` | `make serve` (porta 8888) e `make test` |
 
@@ -84,6 +84,8 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
 - `valorPresente(vf, taxa, anos)`.
 - `calcCLT(input)` → líquido do funcionário e custo da empresa.
 - `calcPJ(pj, clt)` → comparação nos dois sentidos (mesmo líquido / mesmo custo).
+- `pjPorNota(pj, nota)` → resultado do PJ para um faturamento anual arbitrário
+  (usado pelo slider que varia entre o cenário A e o B).
 
 ## Modelo
 

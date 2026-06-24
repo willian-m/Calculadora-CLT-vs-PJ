@@ -214,6 +214,24 @@
   }
 
   /*
+   * Resultado do PJ para um faturamento anual arbitrário (usado pelo slider
+   * que varia entre o cenário A e o B). Os custos fixos seguem 12 meses.
+   */
+  function pjPorNota(pj, notaAnual) {
+    var meses = pj.feriasPJ ? 11 : 12;
+    var r = pj.modelo === 'simples' ? (pj.aliquota || 0) : 0;
+    var fixos = pjCustosFixos(pj);
+    return {
+      meses: meses,
+      nota: round2(notaAnual),
+      mensalidade: round2(notaAnual / meses),
+      custoEmpresa: round2(notaAnual),
+      impostosCustos: round2(notaAnual - (notaAnual * (1 - r) - fixos)),
+      liquido: round2(notaAnual * (1 - r) - fixos)
+    };
+  }
+
+  /*
    * Calcula os dois sentidos da comparação PJ contra um resultado CLT.
    *   clt: saída de calcCLT (usa .liquido e .custoEmpresa)
    *   pj : parâmetros acima, mais:
@@ -291,6 +309,7 @@
     valorPresente: valorPresente,
     calcCLT: calcCLT,
     calcPJ: calcPJ,
+    pjPorNota: pjPorNota,
     pjLiquidoDaNota: pjLiquidoDaNota,
     pjNotaParaLiquido: pjNotaParaLiquido,
     round2: round2,
