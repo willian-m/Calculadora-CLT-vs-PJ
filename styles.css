@@ -28,6 +28,7 @@ body {
   max-width: 1080px;
   margin: 0 auto;
   padding: 2.5rem 1.25rem 4rem;
+  position: relative;
 }
 
 /* ---- Hero ---------------------------------------------------------------- */
@@ -200,6 +201,83 @@ input[type=range]::-moz-range-thumb {
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
+
+/* ---- Tooltips ------------------------------------------------------------ */
+.info {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 1px solid var(--muted); color: var(--muted);
+  font-size: 10px; font-weight: 700; font-style: normal;
+  cursor: help; margin-left: 5px; vertical-align: middle; position: relative;
+  flex: none;
+}
+.info:hover, .info:focus { border-color: var(--clt); color: var(--clt); outline: none; }
+.info:hover::after, .info:focus::after {
+  content: attr(data-tip);
+  position: absolute; left: 50%; bottom: 150%; transform: translateX(-50%);
+  width: 250px; max-width: 70vw;
+  background: #05070b; color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.6rem 0.7rem; font-size: 0.78rem; font-weight: 400;
+  line-height: 1.45; text-align: left; white-space: normal;
+  z-index: 60; box-shadow: var(--shadow); pointer-events: none;
+}
+.info:hover::before, .info:focus::before {
+  content: ''; position: absolute; left: 50%; bottom: 150%;
+  transform: translate(-50%, 95%); border: 6px solid transparent;
+  border-top-color: #05070b; z-index: 61; pointer-events: none;
+}
+table.breakdown td .info { margin-left: 4px; }
+
+/* ---- Botão de engrenagem ------------------------------------------------- */
+.gear {
+  position: absolute; top: 1.5rem; right: 1.25rem;
+  width: 42px; height: 42px; padding: 0; border-radius: 50%;
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--border); font-size: 1.25rem; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: none;
+}
+.gear:hover { color: var(--text); border-color: var(--clt); filter: none; transform: rotate(30deg); }
+
+/* ---- Modal de configurações ---------------------------------------------- */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 3rem 1rem; overflow-y: auto;
+}
+.modal[hidden] { display: none; }
+.modal-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  max-width: 760px; width: 100%; padding: 1.5rem 1.6rem 1.8rem;
+}
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+.modal-head h2 { margin: 0; font-size: 1.3rem; }
+.modal-close {
+  background: none; border: none; color: var(--muted); font-size: 1.5rem;
+  cursor: pointer; padding: 0 0.3rem; width: auto;
+}
+.modal-close:hover { color: var(--text); filter: none; }
+.modal .desc { color: var(--muted); font-size: 0.85rem; margin: 0 0 1rem; }
+.cfg-group { margin: 1.3rem 0 0.5rem; }
+.cfg-group h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--clt); margin: 0 0 0.5rem; }
+table.cfg-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+table.cfg-table th { text-align: left; color: var(--muted); font-weight: 600; font-size: 0.75rem; padding: 0 0.4rem 0.3rem; }
+table.cfg-table td { padding: 0.2rem 0.4rem 0.2rem 0; }
+table.cfg-table td.inf { color: var(--muted); text-align: center; font-size: 1.1rem; }
+table.cfg-table input { padding: 0.4rem 0.5rem; font-size: 0.9rem; }
+.cfg-scalars { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.7rem; }
+.cfg-scalars .field { margin-bottom: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 1.6rem; flex-wrap: wrap; }
+.btn-secondary {
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.7rem 1.3rem; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.btn-secondary:hover { filter: brightness(1.15); }
+.modal-actions button { padding: 0.7rem 1.6rem; }
 
 /* ---- Notas --------------------------------------------------------------- */
 .notas {

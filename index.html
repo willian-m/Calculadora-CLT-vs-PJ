@@ -8,6 +8,7 @@
 </head>
 <body>
   <main class="container">
+    <button type="button" id="settingsBtn" class="gear" title="Configurar tabelas e alíquotas" aria-label="Configurações">⚙</button>
     <header class="hero">
       <h1>CLT <span class="vs">vs</span> PJ</h1>
       <p class="subtitle">
@@ -21,7 +22,7 @@
       <section class="card">
         <h2>Salário</h2>
         <label class="field">
-          <span>Salário mensal bruto (R$)</span>
+          <span>Salário mensal bruto (R$)<span class="info" tabindex="0" data-tip="Salário mensal bruto, antes dos descontos. A base anual usada nos cálculos é 12 salários + 1 (13º) + 1/3 (terço de férias).">i</span></span>
           <input type="number" id="salarioMensal" min="0" step="100" value="10000" required>
           <small>O valor que o RH tipicamente informa.</small>
         </label>
@@ -31,19 +32,19 @@
       <section class="card">
         <h2>FGTS</h2>
         <label class="field">
-          <span>Optante do saque-aniversário?</span>
+          <span>Optante do saque-aniversário?<span class="info" tabindex="0" data-tip="Optante: o trabalhador saca uma fração do FGTS por ano (tabela progressiva), mas perde o saque integral na rescisão. Não-optante: o FGTS fica retido até a saída, e aqui é trazido a valor presente.">i</span></span>
           <select id="optanteSaque">
             <option value="nao" selected>Não (saque-rescisão)</option>
             <option value="sim">Sim (saque-aniversário)</option>
           </select>
         </label>
         <label class="field">
-          <span>Anos até o saque</span>
+          <span>Anos até o saque<span class="info" tabindex="0" data-tip="Horizonte, em anos, usado para descontar o FGTS retido a valor presente: VP = valor ÷ (1 + inflação)^anos.">i</span></span>
           <input type="number" id="anosAteSaque" min="0" step="1" value="5">
           <small>Horizonte para trazer o FGTS retido a valor presente.</small>
         </label>
         <label class="field">
-          <span>Taxa de inflação anual (%)</span>
+          <span>Taxa de inflação anual (%)<span class="info" tabindex="0" data-tip="Taxa anual usada para trazer o FGTS futuro a valor presente. Padrão de 4%.">i</span></span>
           <input type="number" id="inflacao" min="0" step="0.5" value="4">
         </label>
       </section>
@@ -52,14 +53,14 @@
       <section class="card">
         <h2>Empresa (regime CLT)</h2>
         <label class="field">
-          <span>Regime tributário do empregador</span>
+          <span>Regime tributário do empregador<span class="info" tabindex="0" data-tip="Simples Nacional: isento da cota patronal do INSS. Lucro Presumido/Real: paga INSS patronal (20%) + RAT + Sistema S (5,8%) sobre a remuneração. Os percentuais são editáveis nas configurações.">i</span></span>
           <select id="regime">
             <option value="lucro" selected>Lucro Presumido / Real (INSS patronal)</option>
             <option value="simples">Simples Nacional (isento de cota patronal)</option>
           </select>
         </label>
         <label class="field" id="ratField">
-          <span>RAT (%)</span>
+          <span>RAT (%)<span class="info" tabindex="0" data-tip="Risco Ambiental do Trabalho: alíquota de 1% a 3% conforme o grau de risco da atividade. Incide sobre a remuneração junto com o INSS patronal e o Sistema S.">i</span></span>
           <input type="number" id="rat" min="1" max="3" step="0.5" value="2">
           <small>Risco Ambiental do Trabalho (1% a 3%). Sistema S de 5,8% já incluso.</small>
         </label>
@@ -67,7 +68,7 @@
 
       <!-- ----------------------------------------------------------------- -->
       <section class="card">
-        <h2>Benefícios mensais (custo da empresa)</h2>
+        <h2>Benefícios mensais (custo da empresa)<span class="info" tabindex="0" data-tip="Valores mensais pagos pela empresa (×12 no ano). Somados ao custo do empregador no CLT. Não são incluídos no cenário PJ.">i</span></h2>
         <div class="field-row">
           <label class="field"><span>VR (R$)</span><input type="number" id="vr" min="0" step="10" value="0"></label>
           <label class="field"><span>VA (R$)</span><input type="number" id="va" min="0" step="10" value="0"></label>
@@ -83,34 +84,34 @@
       <section class="card">
         <h2>Cenário PJ</h2>
         <label class="field">
-          <span>Modelo</span>
+          <span>Modelo<span class="info" tabindex="0" data-tip="MEI: DAS mensal fixo, com limite de R$81.000/ano de faturamento. Simples Nacional: alíquota efetiva incide sobre o faturamento (Anexo III de serviços começa em ~6%).">i</span></span>
           <select id="pjModelo">
             <option value="simples" selected>Simples Nacional (alíquota efetiva)</option>
             <option value="mei">MEI (DAS fixo)</option>
           </select>
         </label>
         <label class="field" id="aliquotaField">
-          <span>Alíquota efetiva do Simples (%)</span>
+          <span>Alíquota efetiva do Simples (%)<span class="info" tabindex="0" data-tip="Percentual efetivo do Simples aplicado sobre o faturamento (nota). Reduz o líquido do PJ. Ex.: 6% no início do Anexo III.">i</span></span>
           <input type="number" id="pjAliquota" min="0" step="0.5" value="6">
         </label>
         <label class="field" id="dasField" hidden>
-          <span>DAS mensal do MEI (R$)</span>
+          <span>DAS mensal do MEI (R$)<span class="info" tabindex="0" data-tip="Valor mensal fixo do DAS do MEI (×12 no ano), independente do faturamento. Pago também durante eventuais férias.">i</span></span>
           <input type="number" id="pjDas" min="0" step="1" value="76">
           <small>Faturamento limitado a R$81.000/ano.</small>
         </label>
         <label class="field">
-          <span>Tira férias? (11 faturamentos no ano)</span>
+          <span>Tira férias? (11 faturamentos no ano)<span class="info" tabindex="0" data-tip="Se o PJ tira férias, mantém a mensalidade de paridade com o CLT mas fatura só 11 meses — perde ~1 mês de renda (férias não remuneradas). Custos fixos seguem nos 12 meses.">i</span></span>
           <select id="pjFerias">
             <option value="nao" selected>Não — fatura os 12 meses</option>
             <option value="sim">Sim — perde 1 mês de faturamento</option>
           </select>
         </label>
         <label class="field">
-          <span>Contador (R$/mês)</span>
+          <span>Contador (R$/mês)<span class="info" tabindex="0" data-tip="Honorários mensais do contador (×12 no ano). Custo fixo que reduz o líquido do PJ.">i</span></span>
           <input type="number" id="pjContador" min="0" step="10" value="200">
         </label>
         <label class="field">
-          <span>INSS pró-labore (R$/mês)</span>
+          <span>INSS pró-labore (R$/mês)<span class="info" tabindex="0" data-tip="Contribuição previdenciária mensal opcional do PJ (×12). Deixe 0 para ignorar. Para comparar a aposentadoria de forma justa, iguale ao INSS que pagaria como CLT.">i</span></span>
           <input type="number" id="pjInss" min="0" step="10" value="0">
           <small>
             Opcional — contribuição previdenciária mensal do PJ. Deixe 0 para ignorar.
@@ -137,10 +138,13 @@
         <li>FGTS = 8% sobre salário + 13º + terço. Saque-aniversário calculado sobre o depósito do ano.</li>
         <li>Custo da empresa no PJ = valor da nota; benefícios não incluídos no PJ.</li>
         <li>Férias no PJ (opcional): mantém a mensalidade de paridade com o CLT, mas o PJ recebe 11 faturamentos (perde ~1 mês — férias não remuneradas). Custos fixos (DAS/contador/INSS) seguem nos 12 meses.</li>
+        <li>Tabelas e alíquotas (IR, INSS, saque-aniversário, FGTS, encargos) são editáveis no botão de engrenagem (⚙), no topo da página.</li>
         <li>Ferramenta educativa — não substitui cálculo contábil oficial.</li>
       </ul>
     </footer>
   </main>
+
+  <div id="settingsModal" class="modal" hidden></div>
 
   <script src="calc.js"></script>
   <script src="app.js"></script>

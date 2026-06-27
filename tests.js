@@ -141,6 +141,31 @@
   check('Férias MEI: perda = 1 mensalidade',
     pjMEIFerias.perdaFeriasA, pjMEIFerias.mensalidadeA, 0.05);
 
+  // ---- Configuração personalizada ------------------------------------------
+  check('defaults() retorna cópia nova',
+    C.defaults() !== C.defaults() ? 1 : 0, 1);
+  // Mudar a alíquota do FGTS no cfg muda o depósito
+  var cfgFgts = C.defaults();
+  cfgFgts.fgtsAliquota = 0.10;
+  var cltCfg = C.calcCLT({
+    salarioMensal: 10000, optanteSaque: false, anosAteSaque: 5,
+    inflacao: 0.04, regime: 'lucro', rat: 0.02, beneficiosMensais: 0
+  }, cfgFgts);
+  check('cfg: FGTS 10% muda o depósito', cltCfg.fgtsDeposito, 0.10 * 133333.33, 0.02);
+  // Mudar isenção do IRPF muda o imposto; sem cfg continua no padrão
+  var cfgIr = C.defaults();
+  cfgIr.irpfFaixas[0][0] = 999999; // tudo isento
+  check('cfg: IRPF todo isento', C.irpfAnual(50000, cfgIr), 0);
+  check('sem cfg: IRPF mantém padrão', C.irpfAnual(50000) > 0 ? 1 : 0, 1);
+  // INSS patronal configurável
+  var cfgPatr = C.defaults();
+  cfgPatr.inssPatronal = 0; cfgPatr.sistemaS = 0;
+  var cltPatr = C.calcCLT({
+    salarioMensal: 10000, optanteSaque: false, anosAteSaque: 5,
+    inflacao: 0.04, regime: 'lucro', rat: 0, beneficiosMensais: 0
+  }, cfgPatr);
+  check('cfg: sem patronal/SistemaS zera encargos', cltPatr.encargosPatronais, 0);
+
   // ---- Relatório -----------------------------------------------------------
   var passed = results.filter(function (r) { return r.ok; }).length;
   var failed = results.length - passed;

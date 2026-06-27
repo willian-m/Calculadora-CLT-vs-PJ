@@ -11,38 +11,48 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Tabelas (parametrizadas conforme a diretiva em CLAUDE.md)
+  // Configuração padrão (tabelas e alíquotas conforme a diretiva em CLAUDE.md).
+  // Pode ser personalizada pelo usuário e passada como `cfg` às funções.
   // ---------------------------------------------------------------------------
 
-  var INSS_TETO = 8475.55; // teto de contribuição mensal
+  // Cada faixa é [limiteSuperior, aliquota, parcela]. Retorna sempre uma cópia
+  // nova para que personalizações não contaminem o padrão.
+  function defaults() {
+    return {
+      inssTeto: 8475.55, // teto de contribuição mensal do INSS
+      // INSS mensal: [limiteSuperior, aliquota, parcelaDeduzir]
+      inssFaixas: [
+        [1621.00, 0.075, 0],
+        [2902.84, 0.090, 24.32],
+        [4354.27, 0.120, 111.40],
+        [8475.55, 0.140, 198.49]
+      ],
+      // IRPF anual: [baseAté, aliquota, parcelaDeduzir]
+      irpfFaixas: [
+        [28467.20, 0.000, 0],
+        [33919.80, 0.075, 2135.04],
+        [45012.60, 0.150, 4679.03],
+        [55976.16, 0.225, 8054.97],
+        [Infinity, 0.275, 10853.78]
+      ],
+      // Saque-aniversário: [saldoAté, aliquota, parcelaAdicional]
+      saqueFaixas: [
+        [500.00, 0.50, 0],
+        [1000.00, 0.40, 50],
+        [5000.00, 0.30, 150],
+        [10000.00, 0.20, 650],
+        [15000.00, 0.15, 1150],
+        [20000.00, 0.10, 1900],
+        [Infinity, 0.05, 2900]
+      ],
+      fgtsAliquota: 0.08,     // FGTS depositado pela empresa
+      multaRescisoria: 0.40,  // provisão de multa sobre o FGTS depositado
+      inssPatronal: 0.20,     // cota patronal (Lucro Presumido/Real)
+      sistemaS: 0.058         // Sistema S (Lucro Presumido/Real)
+    };
+  }
 
-  // Faixas mensais: [limiteSuperior, aliquota, parcelaDeduzir]
-  var INSS_FAIXAS = [
-    [1621.00, 0.075, 0],
-    [2902.84, 0.090, 24.32],
-    [4354.27, 0.120, 111.40],
-    [8475.55, 0.140, 198.49]
-  ];
-
-  // Faixas IRPF anual: [limiteSuperior, aliquota, parcelaDeduzir]
-  var IRPF_FAIXAS = [
-    [28467.20, 0.000, 0],
-    [33919.80, 0.075, 2135.04],
-    [45012.60, 0.150, 4679.03],
-    [55976.16, 0.225, 8054.97],
-    [Infinity, 0.275, 10853.78]
-  ];
-
-  // Saque-aniversário: [saldoSuperior, aliquota, parcelaAdicional]
-  var SAQUE_FAIXAS = [
-    [500.00, 0.50, 0],
-    [1000.00, 0.40, 50],
-    [5000.00, 0.30, 150],
-    [10000.00, 0.20, 650],
-    [15000.00, 0.15, 1150],
-    [20000.00, 0.10, 1900],
-    [Infinity, 0.05, 2900]
-  ];
+  var DEFAULTS = defaults();
 
   function round2(v) {
     // Arredonda para 2 casas (meio-para-cima), corrigindo o erro de
@@ -59,31 +69,35 @@
   // INSS mensal sobre uma base de remuneração.
   // Acima do teto, a contribuição é limitada à da própria faixa de 14% no teto
   // (fórmula contínua: teto*14% - 198,49 = 988,09).
-  function inssMensal(base) {
+  function inssMensal(base, cfg) {
+    cfg = cfg || DEFAULTS;
     if (base <= 0) return 0;
-    var b = Math.min(base, INSS_TETO);
-    for (var i = 0; i < INSS_FAIXAS.length; i++) {
-      var f = INSS_FAIXAS[i];
+    var b = Math.min(base, cfg.inssTeto);
+    for (var i = 0; i < cfg.inssFaixas.length; i++) {
+      var f = cfg.inssFaixas[i];
       if (b <= f[0]) return round2(b * f[1] - f[2]);
     }
-    return round2(INSS_TETO * 0.14 - 198.49);
+    var last = cfg.inssFaixas[cfg.inssFaixas.length - 1];
+    return round2(cfg.inssTeto * last[1] - last[2]);
   }
 
   // IRPF anual sobre a base de cálculo (rendimento tributável - INSS).
-  function irpfAnual(base) {
+  function irpfAnual(base, cfg) {
+    cfg = cfg || DEFAULTS;
     if (base <= 0) return 0;
-    for (var i = 0; i < IRPF_FAIXAS.length; i++) {
-      var f = IRPF_FAIXAS[i];
+    for (var i = 0; i < cfg.irpfFaixas.length; i++) {
+      var f = cfg.irpfFaixas[i];
       if (base <= f[0]) return round2(Math.max(0, base * f[1] - f[2]));
     }
     return 0;
   }
 
   // Saque-aniversário sobre o saldo (aqui: depósito FGTS do ano).
-  function saqueAniversario(saldo) {
+  function saqueAniversario(saldo, cfg) {
+    cfg = cfg || DEFAULTS;
     if (saldo <= 0) return 0;
-    for (var i = 0; i < SAQUE_FAIXAS.length; i++) {
-      var f = SAQUE_FAIXAS[i];
+    for (var i = 0; i < cfg.saqueFaixas.length; i++) {
+      var f = cfg.saqueFaixas[i];
       if (saldo <= f[0]) return round2(saldo * f[1] + f[2]);
     }
     return 0;
@@ -107,24 +121,26 @@
    *   regime               'simples' | 'lucro'
    *   rat                  number   (ex.: 0.02; só usado em 'lucro')
    *   beneficiosMensais    number   (VR+VA+VT+saúde+odonto somados, /mês)
+   * cfg: configuração de tabelas/alíquotas (opcional; usa os padrões).
    */
-  function calcCLT(input) {
+  function calcCLT(input, cfg) {
+    cfg = cfg || DEFAULTS;
     var S = input.salarioMensal;
     var terco = S / 3;                       // terço de férias
     var G = 12 * S + S + terco;              // salário + 13º + terço (base anual)
 
     // INSS: 11 meses normais + mês de férias (salário + terço) + 13º
-    var inssMesNormal = inssMensal(S);
-    var inssMesFerias = inssMensal(S + terco);
-    var inssDecimoTerceiro = inssMensal(S);
+    var inssMesNormal = inssMensal(S, cfg);
+    var inssMesFerias = inssMensal(S + terco, cfg);
+    var inssDecimoTerceiro = inssMensal(S, cfg);
     var inssAnual = round2(11 * inssMesNormal + inssMesFerias + inssDecimoTerceiro);
 
     // IRPF anual sobre a base agregada (simplificação: 13º e terço incluídos)
     var baseIR = G - inssAnual;
-    var irAnual = irpfAnual(baseIR);
+    var irAnual = irpfAnual(baseIR, cfg);
 
-    // FGTS depositado no ano (8% sobre G, incide sobre 13º e terço)
-    var fgtsDeposito = round2(0.08 * G);
+    // FGTS depositado no ano (incide sobre 13º e terço)
+    var fgtsDeposito = round2(cfg.fgtsAliquota * G);
 
     // Valor do FGTS efetivamente aproveitado pelo funcionário
     var saqueValor = 0;
@@ -132,7 +148,7 @@
     var remanescenteVP = 0;
     var fgtsValor;
     if (input.optanteSaque) {
-      saqueValor = saqueAniversario(fgtsDeposito);
+      saqueValor = saqueAniversario(fgtsDeposito, cfg);
       remanescente = round2(fgtsDeposito - saqueValor);
       remanescenteVP = round2(valorPresente(remanescente, input.inflacao, input.anosAteSaque));
       fgtsValor = round2(saqueValor + remanescenteVP);
@@ -145,9 +161,9 @@
     // Custo da empresa
     var encargos = 0;
     if (input.regime === 'lucro') {
-      encargos = round2((0.20 + (input.rat || 0) + 0.058) * G);
+      encargos = round2((cfg.inssPatronal + (input.rat || 0) + cfg.sistemaS) * G);
     }
-    var multaProvisao = round2(0.40 * fgtsDeposito);
+    var multaProvisao = round2(cfg.multaRescisoria * fgtsDeposito);
     var beneficiosAnuais = round2((input.beneficiosMensais || 0) * 12);
     var custoEmpresa = round2(
       G + fgtsDeposito + multaProvisao + encargos + beneficiosAnuais
@@ -313,7 +329,8 @@
     pjLiquidoDaNota: pjLiquidoDaNota,
     pjNotaParaLiquido: pjNotaParaLiquido,
     round2: round2,
-    INSS_TETO: INSS_TETO
+    defaults: defaults,
+    INSS_TETO: DEFAULTS.inssTeto
   };
 
   root.CLTvsPJ = api;

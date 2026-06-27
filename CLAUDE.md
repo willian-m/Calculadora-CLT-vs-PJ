@@ -86,6 +86,17 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
 - `calcPJ(pj, clt)` → comparação nos dois sentidos (mesmo líquido / mesmo custo).
 - `pjPorNota(pj, nota)` → resultado do PJ para um faturamento anual arbitrário
   (usado pelo slider que varia entre o cenário A e o B).
+- `defaults()` → cópia nova da configuração padrão (tabelas INSS/IRPF/saque e
+  alíquotas FGTS/multa/INSS patronal/Sistema S). As funções aceitam `cfg` opcional;
+  sem ele usam os padrões.
+
+## Tooltips e configurações
+
+- Tooltips (ícone `i`, CSS via `.info[data-tip]`) explicam o método de cálculo em
+  cada campo do formulário e em cada linha das tabelas de resultado.
+- Botão de engrenagem (⚙, `#settingsBtn`) abre um modal que permite editar todas as
+  tabelas e alíquotas. A config é persistida em `localStorage` (`cltvspj.cfg`, com
+  `Infinity` serializado como `__INF__`) e aplicada ao recalcular.
 
 ## Modelo
 
