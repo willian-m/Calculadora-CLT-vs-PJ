@@ -48,7 +48,19 @@
       fgtsAliquota: 0.08,     // FGTS depositado pela empresa
       multaRescisoria: 0.40,  // provisão de multa sobre o FGTS depositado
       inssPatronal: 0.20,     // cota patronal (Lucro Presumido/Real)
-      sistemaS: 0.058         // Sistema S (Lucro Presumido/Real)
+      sistemaS: 0.058,        // Sistema S (Lucro Presumido/Real)
+      // Redutor do IR 2026 (sobre os rendimentos tributáveis anuais), aplicado
+      // sobre o imposto apurado e limitado a ele (não gera imposto negativo):
+      //  - renda até `limite`: redução `max` (zera o imposto);
+      //  - de `limite` a `fim`: redução = base - taxa·renda (decrescente até zero);
+      //  - acima de `fim`: sem redução.
+      irRedutor: {
+        max: 2694.15,
+        limite: 60000,
+        base: 8429.73,
+        taxa: 0.095575,
+        fim: 88200
+      }
     };
   }
 
@@ -89,6 +101,17 @@
       var f = cfg.irpfFaixas[i];
       if (base <= f[0]) return round2(Math.max(0, base * f[1] - f[2]));
     }
+    return 0;
+  }
+
+  // Redutor do IR 2026 sobre os rendimentos tributáveis anuais. Retorna o valor
+  // teórico da redução (ainda não limitado ao imposto apurado).
+  function irpfRedutor(renda, cfg) {
+    cfg = cfg || DEFAULTS;
+    var r = cfg.irRedutor;
+    if (!r || renda <= 0) return 0;
+    if (renda <= r.limite) return r.max;
+    if (renda <= r.fim) return Math.max(0, round2(r.base - r.taxa * renda));
     return 0;
   }
 
@@ -137,7 +160,11 @@
 
     // IRPF anual sobre a base agregada (simplificação: 13º e terço incluídos)
     var baseIR = G - inssAnual;
-    var irAnual = irpfAnual(baseIR, cfg);
+    var irBruto = irpfAnual(baseIR, cfg);
+    // Redutor 2026 sobre os rendimentos tributáveis anuais (G), limitado ao
+    // imposto apurado (não gera imposto negativo).
+    var irAnual = round2(Math.max(0, irBruto - irpfRedutor(G, cfg)));
+    var irRedutor = round2(irBruto - irAnual); // redução efetivamente aplicada
 
     // FGTS depositado no ano (incide sobre 13º e terço)
     var fgtsDeposito = round2(cfg.fgtsAliquota * G);
@@ -174,6 +201,8 @@
       decimoTerceiro: round2(S),
       tercoFerias: round2(terco),
       inssAnual: inssAnual,
+      irBruto: irBruto,
+      irRedutor: irRedutor,
       irAnual: irAnual,
       fgtsDeposito: fgtsDeposito,
       saqueAniversario: saqueValor,
@@ -321,6 +350,7 @@
   var api = {
     inssMensal: inssMensal,
     irpfAnual: irpfAnual,
+    irpfRedutor: irpfRedutor,
     saqueAniversario: saqueAniversario,
     valorPresente: valorPresente,
     calcCLT: calcCLT,

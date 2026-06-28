@@ -211,8 +211,10 @@
         'Base anual de remuneração: 12 salários + 1 salário de 13º + 1/3 do salário (terço de férias).') +
       row('(−) INSS', -clt.inssAnual, 'sub',
         'Tabela progressiva mensal aplicada a 11 meses normais, ao mês de férias (salário + 1/3) e ao 13º. Limitado ao teto mensal de contribuição.') +
-      row('(−) IRPF', -clt.irAnual, 'sub',
+      row('(−) IRPF (tabela)', -clt.irBruto, 'sub',
         'Imposto de Renda pela tabela anual, sobre o bruto anual menos o INSS. Sem dependentes ou outras deduções.') +
+      (clt.irRedutor > 0 ? row('(+) Redutor IR 2026', clt.irRedutor, 'sub',
+        'Redutor de 2026 sobre os rendimentos tributáveis anuais: isenta quem ganha até R$60 mil/ano e reduz gradualmente até R$88,2 mil. Limitado ao imposto apurado (não fica negativo).') : '') +
       row('(+) FGTS aproveitável (VP)', clt.fgtsValor, 'sub',
         'Parte do FGTS que o trabalhador de fato aproveita, a valor presente. Optante do saque-aniversário: saque do ano + remanescente descontado pela inflação. Não-optante: depósito total descontado pela inflação até o saque.') +
       row('Líquido do funcionário', clt.liquido, 'total',
@@ -323,6 +325,14 @@
       cfgField('Sistema S (%)', 'cfgSistemaS', cfg.sistemaS * 100, '0.1') +
       '</div></div>' +
 
+      '<div class="cfg-group"><h3>Redutor do IR (2026)</h3><div class="cfg-scalars">' +
+      cfgField('Redução máxima (R$)', 'cfgRedMax', cfg.irRedutor.max) +
+      cfgField('Isenção total até (R$)', 'cfgRedLimite', cfg.irRedutor.limite, '1000') +
+      cfgField('Termo do phase-out (R$)', 'cfgRedBase', cfg.irRedutor.base) +
+      cfgField('Coeficiente', 'cfgRedTaxa', cfg.irRedutor.taxa, '0.000001') +
+      cfgField('Fim do phase-out (R$)', 'cfgRedFim', cfg.irRedutor.fim, '1000') +
+      '</div></div>' +
+
       '<div class="modal-actions">' +
       '<button type="button" class="btn-secondary" id="cfgReset">Restaurar padrões</button>' +
       '<button type="button" id="cfgSave">Salvar</button>' +
@@ -348,6 +358,13 @@
     cfg.multaRescisoria = (parseFloat(document.getElementById('cfgMulta').value) || 0) / 100;
     cfg.inssPatronal = (parseFloat(document.getElementById('cfgPatronal').value) || 0) / 100;
     cfg.sistemaS = (parseFloat(document.getElementById('cfgSistemaS').value) || 0) / 100;
+    cfg.irRedutor = {
+      max: parseFloat(document.getElementById('cfgRedMax').value) || 0,
+      limite: parseFloat(document.getElementById('cfgRedLimite').value) || 0,
+      base: parseFloat(document.getElementById('cfgRedBase').value) || 0,
+      taxa: parseFloat(document.getElementById('cfgRedTaxa').value) || 0,
+      fim: parseFloat(document.getElementById('cfgRedFim').value) || 0
+    };
     return cfg;
   }
 

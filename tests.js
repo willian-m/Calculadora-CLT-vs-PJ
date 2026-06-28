@@ -33,6 +33,23 @@
   check('IRPF 22,5% (50000)', C.irpfAnual(50000), 50000 * 0.225 - 8054.97);
   check('IRPF 27,5% (117907.79)', C.irpfAnual(117907.79), 117907.79 * 0.275 - 10853.78);
 
+  // ---- Redutor do IR 2026 --------------------------------------------------
+  check('Redutor: renda 40k = máximo', C.irpfRedutor(40000), 2694.15);
+  check('Redutor: renda 60k = máximo', C.irpfRedutor(60000), 2694.15);
+  check('Redutor: 74.100 (phase-out)', C.irpfRedutor(74100), 8429.73 - 0.095575 * 74100, 0.02);
+  check('Redutor: 88.200 ~ zero', C.irpfRedutor(88200), 0, 0.05);
+  check('Redutor: acima de 88.200 = 0', C.irpfRedutor(100000), 0);
+  // calcCLT aplica o redutor para renda baixa (S=3500 -> G=46.666,67 < 60k)
+  var cltRed = C.calcCLT({
+    salarioMensal: 3500, optanteSaque: false, anosAteSaque: 5,
+    inflacao: 0.04, regime: 'lucro', rat: 0.02, beneficiosMensais: 0
+  });
+  check('CLT baixo: redutor aplicado = bruto - líquido IR',
+    cltRed.irRedutor, C.round2(cltRed.irBruto - cltRed.irAnual), 0.001);
+  check('CLT baixo: IR final = max(0, bruto - redutor teórico)',
+    cltRed.irAnual, Math.max(0, C.round2(cltRed.irBruto - 2694.15)), 0.02);
+  check('CLT baixo: IR final não negativo', cltRed.irAnual >= 0 ? 1 : 0, 1);
+
   // ---- Saque-aniversário ---------------------------------------------------
   check('Saque 50% (400)', C.saqueAniversario(400), 200.00);
   check('Saque 40% +50 (800)', C.saqueAniversario(800), 800 * 0.40 + 50);
@@ -55,6 +72,9 @@
     beneficiosMensais: 0
   });
   check('CLT G anual', cltLucro.salarioBrutoAnual, 133333.33);
+  // renda alta (G=133k > 88,2k): sem redutor, IR final = IR bruto
+  check('CLT alto: sem redutor', cltLucro.irRedutor, 0);
+  check('CLT alto: IR final == IR bruto', cltLucro.irAnual, cltLucro.irBruto, 0.001);
   check('CLT INSS anual', cltLucro.inssAnual, 13 * 988.09, 0.02);
   check('CLT IR anual', cltLucro.irAnual, C.irpfAnual(133333.33 - 13 * 988.09), 0.05);
   check('CLT FGTS depósito', cltLucro.fgtsDeposito, 0.08 * 133333.33, 0.02);

@@ -102,7 +102,10 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
 
 - Base anual `G = 12·S + 13º + ⅓ férias`.
 - INSS: 11 meses + mês de férias (salário+terço) + 13º.
-- IRPF anual sobre `G − INSS` (13º/terço agregados — simplificação).
+- IRPF anual sobre `G − INSS` (13º/terço agregados — simplificação), com o
+  **redutor de 2026** (`irpfRedutor(G)`) aplicado sobre o imposto apurado:
+  isenção total até R$60 mil/ano, redução decrescente até R$88,2 mil, limitada
+  ao imposto (não fica negativo). Parâmetros editáveis nas configurações.
 - FGTS 8% sobre `G`; optante do saque-aniversário saca pela tabela e o retido vai a
   valor presente; não-optante traz o total a VP (`anos até saque`, inflação default 4%).
 - Custo CLT: `G` + FGTS + multa 40% + encargos patronais (Simples=0; Lucro Presumido/Real
