@@ -161,6 +161,36 @@
   check('Férias MEI: perda = 1 mensalidade',
     pjMEIFerias.perdaFeriasA, pjMEIFerias.mensalidadeA, 0.05);
 
+  // ---- VR/VA somam à renda do trabalhador; benefícios avulsos do PJ --------
+  var baseInput = {
+    salarioMensal: 10000, optanteSaque: false, anosAteSaque: 5,
+    inflacao: 0.04, regime: 'lucro', rat: 0.02, beneficiosMensais: 0
+  };
+  var cltSemVR = C.calcCLT(baseInput);
+  var cltComVR = C.calcCLT(Object.assign({}, baseInput, {
+    beneficiosMensais: 1000, beneficiosRendaMensais: 1000 // R$1000/mês de VR+VA
+  }));
+  check('VR/VA: renda anual no resultado', cltComVR.rendaBeneficios, 12000);
+  check('VR/VA: líquido sobe em 12k', cltComVR.liquido, cltSemVR.liquido + 12000, 0.02);
+  check('VR/VA: custo da empresa sobe em 12k',
+    cltComVR.custoEmpresa, cltSemVR.custoEmpresa + 12000, 0.02);
+
+  // PJ comprando benefícios avulso reduz o líquido e exige nota maior na paridade
+  var pjSemAvulso = C.calcPJ({ modelo: 'simples', aliquota: 0.06, contadorMensal: 200 }, cltLucro);
+  var pjComAvulso = C.calcPJ({
+    modelo: 'simples', aliquota: 0.06, contadorMensal: 200, beneficiosAvulsoMensais: 800
+  }, cltLucro);
+  check('PJ avulso: nota A maior (precisa faturar mais)',
+    pjComAvulso.notaA > pjSemAvulso.notaA ? 1 : 0, 1);
+  check('PJ avulso: nota A cobre 800/mês após imposto',
+    pjComAvulso.notaA, pjSemAvulso.notaA + (800 * 12) / 0.94, 0.05);
+  var oAvulso = C.pjPorNota({
+    modelo: 'simples', aliquota: 0.06, contadorMensal: 200, beneficiosAvulsoMensais: 800
+  }, 100000);
+  check('PJ avulso: pjPorNota desconta avulso', oAvulso.beneficiosAvulso, 9600);
+  check('PJ avulso: líquido = nota - imposto - fixos - avulso',
+    oAvulso.liquido, 100000 - 6000 - 2400 - 9600, 0.02);
+
   // ---- Configuração personalizada ------------------------------------------
   check('defaults() retorna cópia nova',
     C.defaults() !== C.defaults() ? 1 : 0, 1);

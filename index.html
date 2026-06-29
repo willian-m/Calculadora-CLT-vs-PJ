@@ -68,15 +68,16 @@
 
       <!-- ----------------------------------------------------------------- -->
       <section class="card">
-        <h2>Benefícios mensais (custo da empresa)<span class="info" tabindex="0" data-tip="Valores mensais pagos pela empresa (×12 no ano). Somados ao custo do empregador no CLT. Não são incluídos no cenário PJ.">i</span></h2>
+        <h2>Benefícios mensais (custo da empresa)<span class="info" tabindex="0" data-tip="Valores mensais pagos pela empresa (×12 no ano), somados ao custo do empregador. VR e VA também entram como renda do trabalhador (valor gastável). Plano de saúde e auxílios são comparados pelo custo de o PJ comprá-los avulso.">i</span></h2>
         <div class="field-row">
-          <label class="field"><span>VR (R$)</span><input type="number" id="vr" min="0" step="10" value="0"></label>
-          <label class="field"><span>VA (R$)</span><input type="number" id="va" min="0" step="10" value="0"></label>
-          <label class="field"><span>VT (R$)</span><input type="number" id="vt" min="0" step="10" value="0"></label>
+          <label class="field"><span>VR (R$)<span class="info" tabindex="0" data-tip="Vale-refeição: custo da empresa E renda do trabalhador (pode ser usado em compras que sairiam do salário).">i</span></span><input type="number" id="vr" min="0" step="10" value="0"></label>
+          <label class="field"><span>VA (R$)<span class="info" tabindex="0" data-tip="Vale-alimentação: custo da empresa E renda do trabalhador (pode ser usado em compras que sairiam do salário).">i</span></span><input type="number" id="va" min="0" step="10" value="0"></label>
+          <label class="field"><span>VT (R$)<span class="info" tabindex="0" data-tip="Vale-transporte: custo da empresa. Cobre o deslocamento, então não é contado como renda extra do trabalhador.">i</span></span><input type="number" id="vt" min="0" step="10" value="0"></label>
         </div>
         <div class="field-row">
           <label class="field"><span>Plano de saúde (R$)</span><input type="number" id="saude" min="0" step="10" value="0"></label>
           <label class="field"><span>Odontológico (R$)</span><input type="number" id="odonto" min="0" step="10" value="0"></label>
+          <label class="field"><span>Auxílios diversos (R$)<span class="info" tabindex="0" data-tip="Outros benefícios que a empresa custeia (ex.: auxílio-creche, auxílio home-office). Informe o gasto mensal estimado da empresa.">i</span></span><input type="number" id="auxilios" min="0" step="10" value="0"></label>
         </div>
       </section>
 
@@ -120,6 +121,14 @@
             (no teto, R$988,09/mês).
           </small>
         </label>
+        <label class="field">
+          <span>Plano de saúde avulso (R$/mês)<span class="info" tabindex="0" data-tip="Quanto o PJ paga por um plano de saúde individual (sem a empresa). Reduz o líquido do PJ, para equiparar ao plano que o CLT recebe.">i</span></span>
+          <input type="number" id="pjSaude" min="0" step="10" value="0">
+        </label>
+        <label class="field">
+          <span>Auxílios diversos avulso (R$/mês)<span class="info" tabindex="0" data-tip="Quanto o PJ gasta comprando avulso os mesmos auxílios que o CLT recebe (ex.: creche). Reduz o líquido do PJ.">i</span></span>
+          <input type="number" id="pjAuxilios" min="0" step="10" value="0">
+        </label>
       </section>
 
       <div class="actions">
@@ -137,7 +146,9 @@
         <li>Redutor do IR de 2026: sobre os rendimentos tributáveis anuais, isenta quem ganha até R$60 mil/ano e reduz gradualmente até R$88,2 mil (limitado ao imposto apurado).</li>
         <li>INSS do terço de férias somado ao salário do mês de férias; teto mensal de R$8.475,55 (contribuição máxima de R$988,09/mês).</li>
         <li>FGTS = 8% sobre salário + 13º + terço. Saque-aniversário calculado sobre o depósito do ano.</li>
-        <li>Custo da empresa no PJ = valor da nota; benefícios não incluídos no PJ.</li>
+        <li>Custo da empresa no PJ = valor da nota (sem encargos nem FGTS).</li>
+        <li>VR e VA contam como custo da empresa e também como renda do trabalhador (valores gastáveis que substituiriam gastos do salário). VT não conta como renda.</li>
+        <li>Plano de saúde e auxílios diversos: no CLT são custo do empregador; no PJ entram como custo "avulso" (o prestador compra do bolso), reduzindo o líquido do PJ — para a comparação ser justa.</li>
         <li>Férias no PJ (opcional): mantém a mensalidade de paridade com o CLT, mas o PJ recebe 11 faturamentos (perde ~1 mês — férias não remuneradas). Custos fixos (DAS/contador/INSS) seguem nos 12 meses.</li>
         <li>Tabelas e alíquotas (IR, INSS, saque-aniversário, FGTS, encargos) são editáveis no botão de engrenagem (⚙), no topo da página.</li>
         <li>Ferramenta educativa — não substitui cálculo contábil oficial.</li>

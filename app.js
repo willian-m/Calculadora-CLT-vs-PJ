@@ -57,7 +57,8 @@
 
   // ---- Coleta de input -------------------------------------------------------
   function readInput() {
-    var beneficios = num('vr') + num('va') + num('vt') + num('saude') + num('odonto');
+    var beneficios = num('vr') + num('va') + num('vt') + num('saude') +
+      num('odonto') + num('auxilios');
     var clt = {
       salarioMensal: num('salarioMensal'),
       optanteSaque: document.getElementById('optanteSaque').value === 'sim',
@@ -65,7 +66,8 @@
       inflacao: num('inflacao') / 100,
       regime: document.getElementById('regime').value,
       rat: num('rat') / 100,
-      beneficiosMensais: beneficios
+      beneficiosMensais: beneficios,           // custo da empresa (todos)
+      beneficiosRendaMensais: num('vr') + num('va') // VR+VA também viram renda
     };
     var pj = {
       modelo: document.getElementById('pjModelo').value,
@@ -73,7 +75,8 @@
       aliquota: num('pjAliquota') / 100,
       contadorMensal: num('pjContador'),
       inssMensal: num('pjInss'),
-      feriasPJ: document.getElementById('pjFerias').value === 'sim'
+      feriasPJ: document.getElementById('pjFerias').value === 'sim',
+      beneficiosAvulsoMensais: num('pjSaude') + num('pjAuxilios') // saúde + auxílios avulso
     };
     return { clt: clt, pj: pj };
   }
@@ -123,8 +126,10 @@
         'Valor anual da nota emitida pelo PJ (= o que a empresa paga). Definido pela posição do slider entre os cenários A e B.') +
       row('(−) Impostos + custos fixos', -o.impostosCustos, 'sub',
         'Simples: alíquota efetiva sobre a nota. Mais custos fixos anuais (DAS do MEI, contador e INSS pró-labore), pagos nos 12 meses.') +
+      (o.beneficiosAvulso > 0 ? row('(−) Benefícios comprados avulso', -o.beneficiosAvulso, 'sub',
+        'Plano de saúde e auxílios que o PJ paga do bolso para equiparar ao que o CLT recebe da empresa.') : '') +
       row('Líquido do prestador', o.liquido, 'total',
-        'Faturamento menos impostos e custos fixos.') +
+        'Faturamento menos impostos, custos fixos e benefícios comprados avulso.') +
       '</table>' +
       '<p class="hint">Mensalidade faturada: <strong>' + fmt(o.mensalidade) +
       '</strong> em ' + o.meses + ' faturamentos no ano.</p>' +
@@ -186,6 +191,7 @@
     // --- Slider: faturamento do PJ entre o cenário A e o B -------------------
     var notaMin = Math.floor(pj.notaA);
     var notaMax = Math.ceil(pj.notaB);
+    if (notaMax <= notaMin) notaMax = notaMin + 1; // guarda p/ slider válido
     html += '<div class="slider-box">' +
       '<div class="slider-labels">' +
       '<span>Cenário A<br><small>mesmo líquido</small></span>' +
@@ -203,7 +209,7 @@
     html += '<div class="panel clt"><h3>CLT</h3>' +
       '<span class="tag">funcionário registrado</span>' +
       headline('Líquido', clt.liquido, 'clt',
-        'O que o funcionário efetivamente recebe no ano: bruto − INSS − IRPF + FGTS aproveitável (a valor presente).') +
+        'O que o funcionário efetivamente recebe no ano: bruto − INSS − IRPF + FGTS aproveitável (a valor presente) + VR/VA (renda gastável).') +
       headline('Custo da empresa', clt.custoEmpresa, '',
         'Quanto a empresa desembolsa no ano: remuneração + FGTS + provisão de multa + encargos patronais + benefícios.') +
       '<table class="breakdown">' + tableHead() +
@@ -217,8 +223,10 @@
         'Redutor de 2026 sobre os rendimentos tributáveis anuais: isenta quem ganha até R$60 mil/ano e reduz gradualmente até R$88,2 mil. Limitado ao imposto apurado (não fica negativo).') : '') +
       row('(+) FGTS aproveitável (VP)', clt.fgtsValor, 'sub',
         'Parte do FGTS que o trabalhador de fato aproveita, a valor presente. Optante do saque-aniversário: saque do ano + remanescente descontado pela inflação. Não-optante: depósito total descontado pela inflação até o saque.') +
+      (clt.rendaBeneficios > 0 ? row('(+) VR/VA (renda gastável)', clt.rendaBeneficios, 'sub',
+        'Vale-refeição e vale-alimentação: além de custo da empresa, são renda do trabalhador, pois cobrem compras que sairiam do salário.') : '') +
       row('Líquido do funcionário', clt.liquido, 'total',
-        'Bruto anual − INSS − IRPF + FGTS aproveitável.') +
+        'Bruto anual − INSS − IRPF + FGTS aproveitável + VR/VA.') +
       '</table>' +
       '<table class="breakdown">' + tableHead() +
       row('Remuneração anual', clt.salarioBrutoAnual, '',
@@ -230,7 +238,7 @@
       row('(+) Encargos patronais', clt.encargosPatronais, 'sub',
         'Lucro Presumido/Real: INSS patronal (20%) + RAT + Sistema S (5,8%) sobre a remuneração. Simples Nacional: isento. Percentuais editáveis nas configurações.') +
       row('(+) Benefícios', clt.beneficiosAnuais, 'sub',
-        'Soma anual de VR, VA, VT, plano de saúde e odontológico informados (×12).') +
+        'Soma anual de VR, VA, VT, plano de saúde, odontológico e auxílios diversos informados (×12).') +
       row('Custo total da empresa', clt.custoEmpresa, 'total',
         'Remuneração + FGTS + provisão de multa + encargos + benefícios.') +
       '</table></div>';

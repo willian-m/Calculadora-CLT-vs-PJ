@@ -143,7 +143,8 @@
    *   inflacao             number   (ex.: 0.04)
    *   regime               'simples' | 'lucro'
    *   rat                  number   (ex.: 0.02; só usado em 'lucro')
-   *   beneficiosMensais    number   (VR+VA+VT+saúde+odonto somados, /mês)
+   *   beneficiosMensais    number   (todos os benefícios somados, /mês — custo da empresa)
+   *   beneficiosRendaMensais number (VR+VA, /mês — também viram renda do trabalhador)
    * cfg: configuração de tabelas/alíquotas (opcional; usa os padrões).
    */
   function calcCLT(input, cfg) {
@@ -183,7 +184,10 @@
       fgtsValor = round2(valorPresente(fgtsDeposito, input.inflacao, input.anosAteSaque));
     }
 
-    var liquido = round2(G - inssAnual - irAnual + fgtsValor);
+    // VR/VA são custo da empresa, mas também renda gastável do trabalhador,
+    // então entram no líquido (compras que sairiam do salário).
+    var rendaBeneficios = round2((input.beneficiosRendaMensais || 0) * 12);
+    var liquido = round2(G - inssAnual - irAnual + fgtsValor + rendaBeneficios);
 
     // Custo da empresa
     var encargos = 0;
@@ -209,6 +213,7 @@
       fgtsRemanescente: remanescente,
       fgtsRemanescenteVP: remanescenteVP,
       fgtsValor: fgtsValor,
+      rendaBeneficios: rendaBeneficios,
       liquido: liquido,
       encargosPatronais: encargos,
       multaProvisao: multaProvisao,
@@ -266,13 +271,20 @@
     var meses = pj.feriasPJ ? 11 : 12;
     var r = pj.modelo === 'simples' ? (pj.aliquota || 0) : 0;
     var fixos = pjCustosFixos(pj);
+    // Benefícios comprados avulso (plano de saúde, auxílios) que o PJ paga do
+    // bolso para equiparar ao que o CLT recebe da empresa.
+    var benefAvulso = round2((pj.beneficiosAvulsoMensais || 0) * 12);
+    var impostos = round2(notaAnual * r);
     return {
       meses: meses,
       nota: round2(notaAnual),
       mensalidade: round2(notaAnual / meses),
       custoEmpresa: round2(notaAnual),
-      impostosCustos: round2(notaAnual - (notaAnual * (1 - r) - fixos)),
-      liquido: round2(notaAnual * (1 - r) - fixos)
+      impostos: impostos,
+      custosFixos: fixos,
+      beneficiosAvulso: benefAvulso,
+      impostosCustos: round2(impostos + fixos),
+      liquido: round2(notaAnual - impostos - fixos - benefAvulso)
     };
   }
 
@@ -292,12 +304,15 @@
     var meses = pj.feriasPJ ? 11 : 12;
     var r = pj.modelo === 'simples' ? (pj.aliquota || 0) : 0;
     var fixos = pjCustosFixos(pj); // anual (sempre 12 meses)
+    // Benefícios comprados avulso pelo PJ (saúde, auxílios) — custo fixo anual.
+    var benefAvulso = round2((pj.beneficiosAvulsoMensais || 0) * 12);
+    var deducoes = fixos + benefAvulso; // tudo que reduz o líquido além do imposto
 
-    // Líquido anual a partir de uma receita anual (impostos % + custos fixos)
-    function netFromRev(rev) { return round2(rev * (1 - r) - fixos); }
+    // Líquido anual a partir de uma receita anual (imposto % + custos fixos + avulso)
+    function netFromRev(rev) { return round2(rev * (1 - r) - deducoes); }
 
     // --- Direção A: mensalidade que iguala o líquido do CLT em 12 meses -----
-    var notaParidadeA = (clt.liquido + fixos) / (1 - r); // receita anual p/ 12 meses
+    var notaParidadeA = (clt.liquido + deducoes) / (1 - r); // receita anual p/ 12 meses
     var mensalidadeA = round2(notaParidadeA / 12);
     var notaA = round2(meses * (notaParidadeA / 12));    // receita anual efetiva
     var custoEmpresaA = notaA;                            // empresa paga só a nota

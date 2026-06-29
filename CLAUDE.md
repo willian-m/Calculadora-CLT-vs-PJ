@@ -110,8 +110,11 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
   valor presente; não-optante traz o total a VP (`anos até saque`, inflação default 4%).
 - Custo CLT: `G` + FGTS + multa 40% + encargos patronais (Simples=0; Lucro Presumido/Real
   = 20% + RAT + 5,8% Sistema S) + benefícios.
+- Benefícios: VR+VA são custo da empresa **e** renda do trabalhador (entram no líquido CLT
+  via `beneficiosRendaMensais`); VT/saúde/odonto/auxílios são só custo da empresa.
 - PJ: empresa paga só a nota. MEI (DAS fixo, alerta de limite R$81k/ano) ou Simples
-  (alíquota efetiva), com contador e INSS pró-labore opcionais.
+  (alíquota efetiva), com contador e INSS pró-labore opcionais. Plano de saúde e auxílios
+  comprados avulso (`beneficiosAvulsoMensais`) reduzem o líquido do PJ (equiparação justa).
 - Férias no PJ (opcional): a mensalidade é a de paridade com o CLT em 12 meses; com
   férias o PJ fatura 11 meses → líquido e custo da empresa caem ~1/12 ("perde 1 mês").
   Custos fixos seguem 12 meses. INSS pró-labore tem orientação no form (ex.: igualar à
