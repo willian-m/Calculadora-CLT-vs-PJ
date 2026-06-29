@@ -229,16 +229,22 @@ input[type=range]::-moz-range-thumb {
 }
 table.breakdown td .info { margin-left: 4px; }
 
-/* ---- Botão de engrenagem ------------------------------------------------- */
-.gear {
+/* ---- Botões de topo (GitHub e engrenagem) -------------------------------- */
+.top-bar {
   position: absolute; top: 1.5rem; right: 1.25rem;
+  display: flex; gap: 0.5rem; align-items: center;
+}
+.iconbtn {
   width: 42px; height: 42px; padding: 0; border-radius: 50%;
   background: var(--surface); color: var(--muted);
   border: 1px solid var(--border); font-size: 1.25rem; line-height: 1;
   display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer; box-shadow: none;
+  cursor: pointer; box-shadow: none; text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
-.gear:hover { color: var(--text); border-color: var(--clt); filter: none; transform: rotate(30deg); }
+.iconbtn:hover { color: var(--text); border-color: var(--clt); filter: none; }
+.gear:hover { transform: rotate(30deg); }
+.gh svg { display: block; }
 
 /* ---- Modal de configurações ---------------------------------------------- */
 .modal {

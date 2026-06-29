@@ -73,8 +73,12 @@ ou servidor estático. Compara, em base anual, CLT vs PJ.
 | `styles.css` | Tema escuro responsivo; painéis CLT/PJ lado a lado |
 | `calc.js` | Núcleo financeiro — **funções puras** sem DOM, exportadas em `window`/`module.exports` |
 | `app.js` | Lê o form, chama `calc.js`, renderiza (valores mensais e anuais) e formata em BRL (`Intl.NumberFormat`); slider liga o painel PJ a `pjPorNota` |
-| `tests.js` / `tests.html` | 38 asserções da matemática; rodam no Node e no browser |
+| `tests.js` / `tests.html` | asserções da matemática (68); rodam no Node e no browser |
 | `Makefile` | `make serve` (porta 8888) e `make test` |
+
+Topo da página: link para o repositório (ícone do GitHub, `.iconbtn.gh`) e a
+engrenagem de configurações, agrupados em `.top-bar`. Rodapé traz um aviso legal
+(uso informativo/educativo, sem garantia; recomenda consultar um contador).
 
 ## API do núcleo (`calc.js` → `window.CLTvsPJ`)
 
@@ -127,8 +131,14 @@ make serve     # http://localhost:8888
 make test      # asserções no node
 ```
 
-Verificação: `make test` deve mostrar "38 passaram, 0 falharam"; abrir
+Verificação: `make test` deve mostrar "68 passaram, 0 falharam"; abrir
 `tests.html` (tudo verde) e `index.html` no browser.
+
+## Publicação
+
+- Repositório: `github.com/willian-m/Calculadora-CLT-vs-PJ` (remoto `origin`).
+- Hospedável no GitHub Pages (Settings → Pages → Deploy from a branch → `master`/root),
+  já que é estática e o `index.html` está na raiz.
 
 ## Premissas / decisões
 
