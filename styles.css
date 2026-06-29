@@ -279,6 +279,19 @@ table.cfg-table input { padding: 0.4rem 0.5rem; font-size: 0.9rem; }
 .btn-secondary:hover { filter: brightness(1.15); }
 .modal-actions button { padding: 0.7rem 1.6rem; }
 
+/* ---- Disclaimer ----------------------------------------------------------- */
+.disclaimer {
+  background: rgba(255, 180, 84, 0.1);
+  border: 1px solid rgba(255, 180, 84, 0.4);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.disclaimer strong { color: var(--accent); }
+
 /* ---- Notas --------------------------------------------------------------- */
 .notas {
   margin-top: 2.5rem;
